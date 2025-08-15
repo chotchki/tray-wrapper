@@ -47,6 +47,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
   trigger-publish:
+    needs: ["build"]
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: "ubuntu-latest"
