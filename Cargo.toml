@@ -9,3 +9,6 @@ license = "MIT OR Apache-2.0"
 categories = ["gui"]
 
 [dependencies]
+tray-icon = "0.21.0"
+winit = "0.30"
+objc2-core-foundation = "0.3.1"

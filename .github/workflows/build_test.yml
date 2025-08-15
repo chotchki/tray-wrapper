@@ -1,0 +1,45 @@
+name: Build and Test
+on: push
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    env:
+      RUSTFLAGS: "-Cinstrument-coverage"
+    strategy:
+      matrix:
+        os: ["macos-latest", "ubuntu-latest", "windows-latest"]
+    steps:
+      - name: Install Coverage Tools
+        run: |
+          cargo install grcov && \
+          rustup component add llvm-tools
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Check Format
+        run: cargo fmt --all -- --check
+      - name: Build the library
+        run: cargo build --locked
+      - name: Run Tests
+        env:
+          LLVM_PROFILE_FILE: "tray-wrapper-%p-%m.profraw"
+        run: cargo test
+      - name: Generate Coverage Report
+        run: |
+          mkdir -p ./target/debug/coverage/ && \
+          grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing -o ./target/debug/coverage/lcov.info
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
