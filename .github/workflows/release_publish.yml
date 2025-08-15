@@ -75,7 +75,6 @@ jobs:
           ./build/clean_up_drafts.sh
       - name: create github release (draft)
         run: |
-          mv */*.pkg .
           gh release create v$VERSION \
             -t "Release $VERSION" \
             -n "Release $VERSION" \
