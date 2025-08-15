@@ -46,3 +46,11 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+  trigger-publish:
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Trigger Release Work |
+        run: |
+          gh workflow run release_publish.yml
