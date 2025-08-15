@@ -1,6 +1,6 @@
 [package]
 name = "tray-wrapper"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Christopher Hotchkiss <chris@hotchkiss.io>"]
 edition = "2024"
 description = "A simple wrapper library to make it easy to run servers with a GUI tray icon"
