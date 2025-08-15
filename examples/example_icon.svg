@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1024"
+   height="1024"
+   viewBox="0 0 270.93333 270.93333"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4-beta3 (01c8a1ca, 2024-08-28)"
+   sodipodi:docname="example_icon.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.31779877"
+     inkscape:cx="484.58338"
+     inkscape:cy="404.34392"
+     inkscape:window-width="1200"
+     inkscape:window-height="1186"
+     inkscape:window-x="604"
+     inkscape:window-y="318"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:280.34px;font-family:Arial;-inkscape-font-specification:Arial;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke-width:23.3617"
+       x="-6.570477"
+       y="200.67329"
+       id="text1"
+       transform="scale(0.74067434,1.350121)"><tspan
+         id="tspan1"
+         style="stroke-width:23.3617;fill:#000000"
+         x="-6.570477"
+         y="200.67329"
+         sodipodi:role="line">T</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:235.544px;font-family:Arial;-inkscape-font-specification:Arial;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke-width:19.6287"
+       x="104.53271"
+       y="201.53732"
+       id="text1-1"
+       transform="scale(0.74067435,1.350121)"><tspan
+         id="tspan1-3"
+         style="fill:#000000;stroke-width:19.6287"
+         x="104.53271"
+         y="201.53732"
+         sodipodi:role="line">W</tspan></text>
+  </g>
+</svg>
