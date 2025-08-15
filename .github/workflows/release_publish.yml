@@ -66,13 +66,13 @@ jobs:
     env:
       VERSION: ${{ needs.cargo_version.outputs.version }}
     steps:
-      - name: Clean up old drafts
-        run: |
-          ./build/clean_up_drafts.sh
       - name: checkout repository
         uses: actions/checkout@v4
         with:
           submodules: true
+      - name: Clean up old drafts
+        run: |
+          ./build/clean_up_drafts.sh
       - name: create github release (draft)
         run: |
           mv */*.pkg .
