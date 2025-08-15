@@ -41,7 +41,6 @@ jobs:
       release_built: ${{ steps.set-output.outputs.release_built }}
     steps:
       - name: Install missing linux libs
-        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update && \
           sudo apt-get install libgtk-3-dev
