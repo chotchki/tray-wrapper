@@ -60,7 +60,7 @@ jobs:
         run: cargo publish
 
   publish:
-    runs-on: self-hosted
+    runs-on: "ubuntu-latest"
     needs: [cargo_version, upload_artifact]
     if: ${{ needs.cargo_version.outputs.needs_release == 'true' }}
     env:
