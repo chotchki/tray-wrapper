@@ -26,7 +26,8 @@ pub struct TrayWrapper {
 }
 
 impl TrayWrapper {
-    ///Construct the wrapper
+    ///Construct the wrapper, its recommended you compile time load the icon which means you
+    /// can ignore image parsing errors.
     ///
     /// ```
     /// # use tray_wrapper::{TrayWrapper, TrayWrapperError};
