@@ -7,21 +7,20 @@ env:
 jobs:
   build:
     runs-on: "macos-latest"
-    env:
-      CARGO_INCREMENTAL: 0
-      RUSTFLAGS: "-Cinstrument-coverage -Clink-dead-code"
-      LLVM_PROFILE_FILE: "./target/debug/coverage/tray-wrapper-%p-%m.profraw"
     steps:
-      - name: Install Coverage Tools
-        run: |
-          cargo install grcov && rustup component add llvm-tools
+      - name: Install grcov
+        run: cargo install grcov
+      - name: Install llvm-tools
+        run: rustup component add llvm-tools
       - name: Check out code
         uses: actions/checkout@v5
       - name: Make coverage folder
         run: mkdir -p ./target/debug/coverage
-      - name: Build the library
-        run: cargo build --locked
       - name: Run Tests
+        env:
+          CARGO_INCREMENTAL: 0
+          RUSTFLAGS: "-Cinstrument-coverage -Clink-dead-code"
+          LLVM_PROFILE_FILE: "./target/debug/coverage/tray-wrapper-%p-%m.profraw"
         run: cargo test
       - name: Generate Coverage Report
         run: grcov --source-dir ./src --binary-path ./target/debug/ -t lcov --log-level INFO --branch --ignore-not-existing -o ./target/debug/coverage/lcov.info target/debug/coverage
