@@ -15,3 +15,6 @@ target
 
 # Apple's special files
 .DS_Store
+
+#Code coverage
+*.profraw
