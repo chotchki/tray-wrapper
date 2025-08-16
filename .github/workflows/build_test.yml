@@ -47,7 +47,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           mkdir -p ./target/debug/coverage/ && \
-          grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing --filter "covered" -o ./target/debug/coverage/lcov.info
+          grcov . -s ./src --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing -o ./target/debug/coverage/lcov.info
       - name: Upload coverage reports to Codecov
         if: matrix.os == 'macos-latest'
         uses: codecov/codecov-action@v5
