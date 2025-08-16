@@ -1,0 +1,39 @@
+name: Code Coverage
+on: push
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: "macos-latest"
+    env:
+      RUSTFLAGS: "-Cinstrument-coverage -Clink-dead-code"
+      LLVM_PROFILE_FILE: "./target/debug/coverage/tray-wrapper-%p-%m.profraw"
+    steps:
+      - name: Install Coverage Tools
+        run: |
+          cargo install grcov && rustup component add llvm-tools
+      - name: Check out code
+        uses: actions/checkout@v5
+      - name: Make coverage folder
+        run: mkdir -p ./target/debug/coverage
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Build the library
+        run: cargo build --locked
+      - name: Run Tests
+        run: cargo test
+      - name: Generate Coverage Report
+        run: |
+          grcov . --source-dir . --keep-only "src/*" -t lcov --branch --ignore-not-existing -o ./target/debug/coverage/lcov.info
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

@@ -10,8 +10,6 @@ env:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    env:
-      RUSTFLAGS: "-Cinstrument-coverage -Clink-dead-code"
     strategy:
       matrix:
         os: ["macos-latest", "ubuntu-latest", "windows-latest"]
@@ -21,10 +19,6 @@ jobs:
         run: |
           sudo apt-get update && \
           sudo apt-get install libgtk-3-dev
-      - name: Install Coverage Tools
-        if: matrix.os == 'macos-latest'
-        run: |
-          cargo install grcov && rustup component add llvm-tools
       - name: Check out code
         uses: actions/checkout@v5
       - name: Cache Dependencies
@@ -40,19 +34,7 @@ jobs:
       - name: Build the library
         run: cargo build --locked
       - name: Run Tests
-        env:
-          LLVM_PROFILE_FILE: "tray-wrapper-%p-%m.profraw"
         run: cargo test
-      - name: Generate Coverage Report
-        if: matrix.os == 'macos-latest'
-        run: |
-          mkdir -p ./target/debug/coverage/ && \
-          grcov . --source-dir . --keep-only "src/*" -t lcov --branch --ignore-not-existing -o ./target/debug/coverage/lcov.info
-      - name: Upload coverage reports to Codecov
-        if: matrix.os == 'macos-latest'
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
   trigger-publish:
     needs: ["build"]
     env:
