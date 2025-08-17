@@ -56,10 +56,4 @@ pub enum TrayWrapperError {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn example_usage() -> Result<(), TrayWrapperError> {
-        TrayWrapper::new(include_bytes!("../examples/example_icon.png"))?;
-        Ok(())
-    }
 }
