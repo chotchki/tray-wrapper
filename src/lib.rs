@@ -6,13 +6,17 @@
 //!
 //! The tray icon provides a submenu to view the supplied server status and the ability to exit.
 
+use std::pin::Pin;
+
 use image::ImageError;
 use thiserror::Error;
+use tokio::sync::mpsc::Receiver;
+use tokio_util::sync::CancellationToken;
 use winit::window::{BadIcon, Icon};
 
 /// The state of the running server process
 #[derive(Debug, Default)]
-enum ServerStatus {
+pub enum ServerStatus {
     #[default]
     StartUp,
     Running(String),
@@ -20,28 +24,40 @@ enum ServerStatus {
     Error(String),
 }
 
+/// The ServerGenerator is a closure that will be called time to generate the server to be run.
+///
+/// This is where you would read any configuration files or do other setup to be ready for it to be
+/// run.
+pub type ServerGenerator<E> = Box<
+    dyn Fn(
+        CancellationToken,
+        Receiver<ServerStatus>,
+    ) -> Result<Pin<Box<dyn Future<Output = ()>>>, E>,
+>;
+
 /// This is the main entry point / handle for the wrapper
-pub struct TrayWrapper {
+pub struct TrayWrapper<E> {
     icon: Icon,
+    server_generator: ServerGenerator<E>,
 }
 
-impl TrayWrapper {
+impl<E> TrayWrapper<E> {
     ///Construct the wrapper, its recommended you compile time load the icon which means you
     /// can ignore image parsing errors.
-    ///
-    /// ```
-    /// # use tray_wrapper::{TrayWrapper, TrayWrapperError};
-    /// let tw = TrayWrapper::new(include_bytes!("../examples/example_icon.png"))?;
-    /// # Ok::<(), TrayWrapperError>(())
-    /// ```
-    pub fn new(icon_data: &[u8]) -> Result<Self, TrayWrapperError> {
+    pub fn new(
+        icon_data: &[u8],
+        server_generator: ServerGenerator<E>,
+    ) -> Result<Self, TrayWrapperError> {
         let image = image::load_from_memory(icon_data)?.into_rgba8();
 
         let (width, height) = image.dimensions();
         let rgba = image.into_raw();
         let icon = Icon::from_rgba(rgba, width, height)?;
 
-        Ok(TrayWrapper { icon })
+        Ok(TrayWrapper {
+            icon,
+            server_generator,
+        })
     }
 }
 
@@ -55,5 +71,28 @@ pub enum TrayWrapperError {
 
 #[cfg(test)]
 mod tests {
+
+    use std::sync::mpsc::Sender;
+
+    use tokio::sync::mpsc::channel;
+
     use super::*;
+
+    #[test]
+    fn example() -> anyhow::Result<()> {
+        fn sg(
+            _: CancellationToken,
+            _: Receiver<ServerStatus>,
+        ) -> Result<Pin<Box<dyn Future<Output = ()>>>, anyhow::Error> {
+            let task = async {};
+            Ok(Box::pin(task))
+        }
+        let c = CancellationToken::new();
+        let (send, recv) = channel::<(Sender<ServerStatus>, Receiver<ServerStatus>)>(1);
+        let tw = TrayWrapper::new(
+            include_bytes!("../examples/example_icon.png"),
+            Box::new(&sg),
+        )?;
+        Ok(())
+    }
 }
