@@ -24,7 +24,7 @@ jobs:
           LLVM_PROFILE_FILE: "target/debug/coverage/profraw/tray-wrapper-%p-%m.profraw"
         run: cargo test
       - name: Generate Coverage Report
-        run: grcov --source-dir . --binary-path ./target/debug/ -t cobertura --log-level DEBUG --branch --ignore-not-existing -o ./target/debug/coverage/cobertura.xml target/debug/coverage/profraw
+        run: grcov --source-dir ./src --binary-path ./target/debug/ -p ${{GITHUB_WORKSPACE}} -t cobertura --log-level DEBUG --branch --ignore-not-existing -o ./target/debug/coverage/cobertura.xml target/debug/coverage/profraw
       - name: List what we have
         run: |
           ls -l target/debug/coverage && \
