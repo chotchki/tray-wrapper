@@ -10,9 +10,16 @@ use std::pin::Pin;
 
 use image::ImageError;
 use thiserror::Error;
-use tokio::sync::mpsc::Receiver;
+use tokio::sync::mpsc::{Receiver, Sender};
 use tokio_util::sync::CancellationToken;
-use winit::window::{BadIcon, Icon};
+use tray_icon::{
+    BadIcon, Icon, TrayIcon, TrayIconBuilder,
+    menu::{Menu, MenuItem},
+};
+use winit::application::ApplicationHandler;
+
+use crate::menu_state::MenuState;
+mod menu_state;
 
 /// The state of the running server process
 #[derive(Debug, Default)]
@@ -29,16 +36,16 @@ pub enum ServerStatus {
 /// This is where you would read any configuration files or do other setup to be ready for it to be
 /// run.
 pub type ServerGenerator<E> = Box<
-    dyn Fn(
-        CancellationToken,
-        Receiver<ServerStatus>,
-    ) -> Result<Pin<Box<dyn Future<Output = ()>>>, E>,
+    dyn Fn(CancellationToken, Sender<ServerStatus>) -> Result<Pin<Box<dyn Future<Output = ()>>>, E>,
 >;
 
 /// This is the main entry point / handle for the wrapper
 pub struct TrayWrapper<E> {
     icon: Icon,
+    menu_state: Option<MenuState>,
+
     server_generator: ServerGenerator<E>,
+    cancel_token: CancellationToken,
 }
 
 impl<E> TrayWrapper<E> {
@@ -56,33 +63,88 @@ impl<E> TrayWrapper<E> {
 
         Ok(TrayWrapper {
             icon,
+            menu_state: None,
+
             server_generator,
+            cancel_token: CancellationToken::new(),
         })
+    }
+}
+
+#[derive(Debug)]
+pub enum UserEvent {
+    TrayIconEvent(tray_icon::TrayIconEvent),
+    MenuEvent(tray_icon::menu::MenuEvent),
+}
+
+// This implementation is from the winit example here: https://github.com/tauri-apps/tray-icon/blob/dev/examples/winit.rs
+impl<E> ApplicationHandler<UserEvent> for TrayWrapper<E> {
+    fn resumed(&mut self, _event_loop: &winit::event_loop::ActiveEventLoop) {}
+
+    fn window_event(
+        &mut self,
+        _event_loop: &winit::event_loop::ActiveEventLoop,
+        _window_id: winit::window::WindowId,
+        _event: winit::event::WindowEvent,
+    ) {
+    }
+
+    fn new_events(
+        &mut self,
+        _event_loop: &winit::event_loop::ActiveEventLoop,
+        cause: winit::event::StartCause,
+    ) {
+        // We create the icon once the event loop is actually running
+        // to prevent issues like https://github.com/tauri-apps/tray-icon/issues/90
+        if winit::event::StartCause::Init == cause {
+            let Ok(mut ms) = MenuState::new(self.icon.clone()) else {
+                return _event_loop.exit();
+            };
+            ms.update_tray_icon(ServerStatus::StartUp);
+            self.menu_state = Some(ms);
+
+            //Now its time to really start the server
+        }
+
+        // We have to request a redraw here to have the icon actually show up.
+        // Winit only exposes a redraw method on the Window so we use core-foundation directly-ish.
+        #[cfg(target_os = "macos")]
+        {
+            use objc2_core_foundation::CFRunLoop;
+            let rl = CFRunLoop::main().unwrap();
+            CFRunLoop::wake_up(&rl);
+        }
+    }
+
+    fn user_event(&mut self, _event_loop: &winit::event_loop::ActiveEventLoop, event: UserEvent) {
+        if let Some(ms) = &self.menu_state
+            && ms.quit_matches(event)
+        {
+            _event_loop.exit();
+        }
     }
 }
 
 #[derive(Error, Debug)]
 pub enum TrayWrapperError {
     #[error("Unable to load the icon from buffer")]
-    IconLoadError(#[from] ImageError),
-    #[error("Winit Bad Icon")]
+    IconLoad(#[from] ImageError),
+    #[error("Tray Icon Bad Icon")]
     BadIcon(#[from] BadIcon),
+    #[error("Failure to pre-create menu")]
+    MenuError(#[from] tray_icon::menu::Error),
 }
 
 #[cfg(test)]
 mod tests {
-
-    use std::sync::mpsc::Sender;
-
-    use tokio::sync::mpsc::channel;
-
     use super::*;
+    use tokio::sync::mpsc::{Sender, channel};
 
     #[test]
     fn example() -> anyhow::Result<()> {
         fn sg(
             _: CancellationToken,
-            _: Receiver<ServerStatus>,
+            _: Sender<ServerStatus>,
         ) -> Result<Pin<Box<dyn Future<Output = ()>>>, anyhow::Error> {
             let task = async {};
             Ok(Box::pin(task))
