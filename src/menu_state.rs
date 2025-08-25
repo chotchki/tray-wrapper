@@ -4,7 +4,7 @@ use tray_icon::{
     menu::{Menu, MenuItem},
 };
 
-use crate::{ServerStatus, UserEvent};
+use crate::{UserEvent, server_status::ServerStatus};
 
 pub struct MenuState {
     tray_icon: TrayIcon,
@@ -53,7 +53,7 @@ impl MenuState {
             }
             ServerStatus::Error(e) => {
                 self.tray_icon.set_title(Some("E"));
-                self.status_item.set_text(e);
+                self.status_item.set_text(e.to_string());
                 self.tray_icon
                     .set_menu(Some(Box::new(self.tray_menu.clone())));
             }
