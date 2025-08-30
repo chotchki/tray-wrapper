@@ -1,24 +1,27 @@
-use std::{pin::Pin, sync::Arc};
-
-use anyhow::Error;
-use tokio::sync::mpsc::{Sender, channel};
-use tray_wrapper::{TrayWrapper, event_loop::setup_event_loop, user_event::UserEvent};
-use winit::event_loop::EventLoopProxy;
+use std::sync::Arc;
+use tray_wrapper::{
+    TrayWrapper,
+    event_loop::setup_event_loop,
+    server_generator::{ContinueRunning, ServerGeneratorResult},
+};
 
 fn main() -> anyhow::Result<()> {
     let event_loop = setup_event_loop();
-    fn sg(
-        _: EventLoopProxy<UserEvent>,
-    ) -> Result<Pin<Box<dyn Future<Output = ()> + Send + 'static>>, Box<dyn std::error::Error>>
-    {
-        let task = async {};
-        Ok(Box::pin(task))
+    fn sg() -> ServerGeneratorResult {
+        let task = async { ContinueRunning::Exit };
+        Box::pin(task)
     }
-    let tw = TrayWrapper::new(
+
+    let mut tw = TrayWrapper::new(
         include_bytes!("../examples/example_icon.png"),
-        Arc::new(&sg),
         event_loop.create_proxy(),
+        Arc::new(&sg),
     )
     .unwrap();
+
+    if let Err(err) = event_loop.run_app(&mut tw) {
+        println!("Error: {err:?}");
+    }
+
     Ok(())
 }

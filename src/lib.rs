@@ -7,44 +7,31 @@
 //! The tray icon provides a submenu to view the supplied server status and the ability to exit.
 pub mod event_loop;
 mod menu_state;
+pub mod server_generator;
 mod server_status;
 pub mod user_event;
 
-use std::{pin::Pin, sync::Arc, time::Duration};
-
+use crate::{
+    menu_state::MenuState,
+    server_generator::{ContinueRunning, ServerGenerator},
+    server_status::ServerStatus,
+    user_event::UserEvent,
+};
 use image::ImageError;
+use std::time::Duration;
+use take_once::TakeOnce;
 use thiserror::Error;
 use tokio::runtime::Runtime;
 use tray_icon::{BadIcon, Icon};
 use winit::{application::ApplicationHandler, event_loop::EventLoopProxy};
-
-use crate::{
-    menu_state::{MenuState, MenuStateError},
-    server_status::ServerStatus,
-    user_event::UserEvent,
-};
-
-/// The ServerGenerator is a closure that will be called repeated to generate the server to be run.
-///
-/// This is where you would read any configuration files or do other setup to be ready for it to be
-/// run.
-pub type ServerGenerator = Arc<
-    dyn Fn(
-            EventLoopProxy<UserEvent>,
-        )
-            -> Result<Pin<Box<dyn Future<Output = ()> + Send + 'static>>, Box<dyn std::error::Error>>
-        + Send
-        + Sync,
->;
 
 /// This is the main entry point / handle for the wrapper
 pub struct TrayWrapper {
     icon: Icon,
     menu_state: Option<MenuState>,
     runtime: Option<Runtime>,
-
-    server_generator: ServerGenerator,
     event_loop_proxy: EventLoopProxy<UserEvent>,
+    server_generator: TakeOnce<ServerGenerator>,
 }
 
 impl TrayWrapper {
@@ -52,22 +39,23 @@ impl TrayWrapper {
     /// can ignore image parsing errors.
     pub fn new(
         icon_data: &[u8],
-        server_generator: ServerGenerator,
         event_loop_proxy: EventLoopProxy<UserEvent>,
+        server_gen: ServerGenerator,
     ) -> Result<Self, TrayWrapperError> {
         let image = image::load_from_memory(icon_data)?.into_rgba8();
 
         let (width, height) = image.dimensions();
         let rgba = image.into_raw();
         let icon = Icon::from_rgba(rgba, width, height)?;
+        let server_generator = TakeOnce::new_with(server_gen);
 
         Ok(TrayWrapper {
             icon,
             menu_state: None,
             runtime: Some(Runtime::new()?),
 
-            server_generator,
             event_loop_proxy,
+            server_generator,
         })
     }
 }
@@ -103,21 +91,37 @@ impl ApplicationHandler<UserEvent> for TrayWrapper {
                 return _event_loop.exit();
             };
 
-            let sg = self.server_generator.clone();
+            let sg = self
+                .server_generator
+                .take()
+                .expect("Unable to take generator function");
             let elp = self.event_loop_proxy.clone();
             rt.spawn(async move {
+                let sg_fn = sg;
                 loop {
-                    match sg(elp.clone()) {
-                        Ok(_) => elp
-                            .send_event(UserEvent::ServerStatusEvent(ServerStatus::Stopped(
-                                "The server stopped, restarting".to_string(),
+                    let next_run = sg_fn();
+                    elp.send_event(UserEvent::ServerStatusEvent(ServerStatus::Running))
+                        .expect("Event Loop Closed!");
+                    match next_run.await {
+                        ContinueRunning::Continue => {
+                            elp.send_event(UserEvent::ServerStatusEvent(ServerStatus::Stopped(
+                                "Server Exited, will start again".to_string(),
                             )))
-                            .expect("Event Loop Closed!"),
-                        Err(e) => elp
-                            .send_event(UserEvent::ServerStatusEvent(ServerStatus::Error(
+                            .expect("Event Loop Closed!");
+                            continue;
+                        }
+                        ContinueRunning::Exit => {
+                            elp.send_event(UserEvent::ServerExitEvent)
+                                .expect("Event Loop Closed!");
+                            break;
+                        }
+                        ContinueRunning::ExitWithError(e) => {
+                            elp.send_event(UserEvent::ServerStatusEvent(ServerStatus::Error(
                                 e.to_string(),
                             )))
-                            .expect("Event Loop Closed!"),
+                            .expect("Event Loop Closed!");
+                            break;
+                        }
                     }
                 }
             });
@@ -134,6 +138,13 @@ impl ApplicationHandler<UserEvent> for TrayWrapper {
     }
 
     fn user_event(&mut self, _event_loop: &winit::event_loop::ActiveEventLoop, event: UserEvent) {
+        if let UserEvent::ServerExitEvent = event {
+            if let Some(rt) = self.runtime.take() {
+                rt.shutdown_timeout(Duration::from_secs(10));
+            }
+            _event_loop.exit();
+        }
+
         if let Some(ms) = &self.menu_state
             && ms.quit_matches(event)
         {

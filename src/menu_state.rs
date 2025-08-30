@@ -36,28 +36,22 @@ impl MenuState {
             ServerStatus::StartUp => {
                 self.tray_icon.set_title(Some("?"));
                 self.status_item.set_text("In startup");
-                self.tray_icon
-                    .set_menu(Some(Box::new(self.tray_menu.clone())));
             }
-            ServerStatus::Running(r) => {
+            ServerStatus::Running => {
                 self.tray_icon.set_title(None as Option<String>);
-                self.status_item.set_text(r);
-                self.tray_icon
-                    .set_menu(Some(Box::new(self.tray_menu.clone())));
+                self.status_item.set_text("Running");
             }
             ServerStatus::Stopped(s) => {
                 self.tray_icon.set_title(Some("X"));
                 self.status_item.set_text(s);
-                self.tray_icon
-                    .set_menu(Some(Box::new(self.tray_menu.clone())));
             }
             ServerStatus::Error(e) => {
                 self.tray_icon.set_title(Some("E"));
-                self.status_item.set_text(e.to_string());
-                self.tray_icon
-                    .set_menu(Some(Box::new(self.tray_menu.clone())));
+                self.status_item.set_text(e);
             }
         }
+        self.tray_icon
+            .set_menu(Some(Box::new(self.tray_menu.clone())));
     }
 
     pub fn quit_matches(&self, event: UserEvent) -> bool {
