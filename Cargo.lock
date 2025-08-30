@@ -2552,6 +2552,7 @@ name = "tray-wrapper"
 version = "0.0.6"
 dependencies = [
  "anyhow",
+ "gtk",
  "image",
  "objc2-core-foundation",
  "take-once",
