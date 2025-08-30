@@ -19,6 +19,13 @@ fn main() -> anyhow::Result<()> {
     )
     .unwrap();
 
+    //Fix to ensure GTK has been started on linux (see tray-icon examples)
+    #[cfg(target_os = "linux")]
+    std::thread::spawn(|| {
+        gtk::init().unwrap();
+        gtk::main();
+    });
+
     if let Err(err) = event_loop.run_app(&mut tw) {
         println!("Error: {err:?}");
     }
