@@ -23,7 +23,6 @@ fn main() -> anyhow::Result<()> {
     #[cfg(target_os = "linux")]
     {
         gtk::init().unwrap();
-        //gtk::main();
     }
 
     if let Err(err) = event_loop.run_app(&mut tw) {
