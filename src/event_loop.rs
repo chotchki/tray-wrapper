@@ -10,13 +10,13 @@ pub fn setup_event_loop() -> EventLoop<UserEvent> {
     let proxy = event_loop.create_proxy();
     TrayIconEvent::set_event_handler(Some(move |event| {
         proxy
-            .send_event(UserEvent::TrayIconEvent(event))
+            .send_event(UserEvent::TrayIcon(event))
             .expect("Tray Icon Event loop doesn't exist");
     }));
     let proxy = event_loop.create_proxy();
     MenuEvent::set_event_handler(Some(move |event| {
         proxy
-            .send_event(UserEvent::MenuEvent(event))
+            .send_event(UserEvent::Menu(event))
             .expect("Menu Event loop doesn't exist");
     }));
 

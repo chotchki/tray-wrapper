@@ -87,23 +87,23 @@ impl ApplicationHandler<UserEvent> for TrayWrapper {
                 let sg_fn = sg;
                 loop {
                     let next_run = sg_fn();
-                    elp.send_event(UserEvent::ServerStatusEvent(ServerStatus::Running))
+                    elp.send_event(UserEvent::ServerStatus(ServerStatus::Running))
                         .expect("Event Loop Closed!");
                     match next_run.await {
                         ContinueRunning::Continue => {
-                            elp.send_event(UserEvent::ServerStatusEvent(ServerStatus::Stopped(
+                            elp.send_event(UserEvent::ServerStatus(ServerStatus::Stopped(
                                 "Server Exited, will start again".to_string(),
                             )))
                             .expect("Event Loop Closed!");
                             continue;
                         }
                         ContinueRunning::Exit => {
-                            elp.send_event(UserEvent::ServerExitEvent)
+                            elp.send_event(UserEvent::ServerExit)
                                 .expect("Event Loop Closed!");
                             break;
                         }
                         ContinueRunning::ExitWithError(e) => {
-                            elp.send_event(UserEvent::ServerStatusEvent(ServerStatus::Error(
+                            elp.send_event(UserEvent::ServerStatus(ServerStatus::Error(
                                 e.to_string(),
                             )))
                             .expect("Event Loop Closed!");
@@ -125,7 +125,7 @@ impl ApplicationHandler<UserEvent> for TrayWrapper {
     }
 
     fn user_event(&mut self, _event_loop: &winit::event_loop::ActiveEventLoop, event: UserEvent) {
-        if let UserEvent::ServerExitEvent = event {
+        if let UserEvent::ServerExit = event {
             if let Some(rt) = self.runtime.take() {
                 rt.shutdown_timeout(Duration::from_secs(10));
             }
