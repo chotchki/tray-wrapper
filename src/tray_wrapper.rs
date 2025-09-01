@@ -1,8 +1,8 @@
 use crate::{
+    event_loop::UserEvent,
     menu_state::MenuState,
     server_generator::{ContinueRunning, ServerGenerator},
     server_status::ServerStatus,
-    user_event::UserEvent,
 };
 use image::ImageError;
 use std::time::Duration;

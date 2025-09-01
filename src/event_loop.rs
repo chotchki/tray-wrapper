@@ -1,9 +1,16 @@
+use crate::server_status::ServerStatus;
 use tray_icon::{TrayIconEvent, menu::MenuEvent};
 use winit::event_loop::EventLoop;
 
-use crate::user_event::UserEvent;
+#[derive(Debug)]
+pub enum UserEvent {
+    TrayIcon(tray_icon::TrayIconEvent),
+    Menu(tray_icon::menu::MenuEvent),
+    ServerStatus(ServerStatus),
+    ServerExit,
+}
 
-pub fn setup_event_loop() -> EventLoop<UserEvent> {
+pub(crate) fn setup_event_loop() -> EventLoop<UserEvent> {
     let event_loop = EventLoop::<UserEvent>::with_user_event().build().unwrap();
 
     // set a tray event handler that forwards the event and wakes up the event loop

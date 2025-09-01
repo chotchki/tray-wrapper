@@ -10,9 +10,39 @@ mod menu_state;
 mod server_generator;
 mod server_status;
 mod tray_wrapper;
-mod user_event;
+use event_loop::setup_event_loop;
+use tray_wrapper::{TrayWrapper, TrayWrapperError};
 
 //Public interface
-pub use event_loop::setup_event_loop;
-pub use server_generator::{ContinueRunning, ServerGeneratorResult};
-pub use tray_wrapper::{TrayWrapper, TrayWrapperError};
+
+pub use server_generator::{ContinueRunning, ServerGenerator, ServerGeneratorResult};
+use thiserror::Error;
+
+pub fn create_tray_wrapper(
+    icon_data: &[u8],
+    server_gen: ServerGenerator,
+) -> Result<(), CreateTrayWrapperError> {
+    let event_loop = setup_event_loop();
+    let mut tw = TrayWrapper::new(icon_data, event_loop.create_proxy(), server_gen)?;
+
+    //Fix to ensure GTK has been started on linux (see tray-icon examples)
+    #[cfg(target_os = "linux")]
+    {
+        gtk::init().unwrap();
+    }
+
+    event_loop.run_app(&mut tw)?;
+
+    Ok(())
+}
+
+#[derive(Error, Debug)]
+pub enum CreateTrayWrapperError {
+    #[error(transparent)]
+    TrayWrapper(#[from] TrayWrapperError),
+    #[error(transparent)]
+    Winit(#[from] winit::error::EventLoopError),
+    #[cfg(target_os = "linux")]
+    #[error("Gtk Failed to Init {}")]
+    Gtk(#[from] glib::error::BoolError),
+}
