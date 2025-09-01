@@ -42,6 +42,6 @@ pub enum CreateTrayWrapperError {
     #[error(transparent)]
     Winit(#[from] winit::error::EventLoopError),
     #[cfg(target_os = "linux")]
-    #[error("Gtk Failed to Init {}")]
+    #[error("Gtk Failed to Init {0}")]
     Gtk(#[from] glib::error::BoolError),
 }
