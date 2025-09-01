@@ -14,7 +14,6 @@ use event_loop::setup_event_loop;
 use tray_wrapper::{TrayWrapper, TrayWrapperError};
 
 //Public interface
-
 pub use server_generator::{ContinueRunning, ServerGenerator, ServerGeneratorResult};
 use thiserror::Error;
 
