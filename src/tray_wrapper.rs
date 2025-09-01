@@ -132,13 +132,18 @@ impl ApplicationHandler<UserEvent> for TrayWrapper {
             _event_loop.exit();
         }
 
-        if let Some(ms) = &self.menu_state
-            && ms.quit_matches(event)
-        {
-            if let Some(rt) = self.runtime.take() {
+        if let Some(ms) = &mut self.menu_state {
+            if ms.quit_matches(&event)
+                && let Some(rt) = self.runtime.take()
+            {
                 rt.shutdown_timeout(Duration::from_secs(10));
+                _event_loop.exit();
+                return;
             }
-            _event_loop.exit();
+
+            if let UserEvent::ServerStatus(s_stat) = event {
+                ms.update_tray_icon(s_stat);
+            }
         }
     }
 }

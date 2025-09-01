@@ -54,7 +54,7 @@ impl MenuState {
             .set_menu(Some(Box::new(self.tray_menu.clone())));
     }
 
-    pub fn quit_matches(&self, event: UserEvent) -> bool {
+    pub fn quit_matches(&self, event: &UserEvent) -> bool {
         if let UserEvent::Menu(me) = event
             && me.id == self.quit_item.id()
         {
