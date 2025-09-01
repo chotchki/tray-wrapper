@@ -29,6 +29,11 @@ glib = "0.21.1"
 objc2-core-foundation = "0.3.1"
 
 [[test]]
-name = "ui_tests"
-path = "ui_tests/main.rs"
+name = "ui_basic"
+path = "ui_tests/basic.rs"
+harness = false
+
+[[test]]
+name = "ui_restart"
+path = "ui_tests/restart.rs"
 harness = false
