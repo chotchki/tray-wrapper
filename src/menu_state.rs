@@ -4,7 +4,7 @@ use tray_icon::{
     menu::{Menu, MenuItem},
 };
 
-use crate::{UserEvent, server_status::ServerStatus};
+use crate::{server_status::ServerStatus, user_event::UserEvent};
 
 pub struct MenuState {
     tray_icon: TrayIcon,

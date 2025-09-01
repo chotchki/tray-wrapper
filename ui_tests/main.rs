@@ -1,9 +1,5 @@
 use std::sync::Arc;
-use tray_wrapper::{
-    TrayWrapper,
-    event_loop::setup_event_loop,
-    server_generator::{ContinueRunning, ServerGeneratorResult},
-};
+use tray_wrapper::{ContinueRunning, ServerGeneratorResult, TrayWrapper, setup_event_loop};
 
 fn main() -> anyhow::Result<()> {
     let event_loop = setup_event_loop();
