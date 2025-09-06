@@ -1,14 +1,19 @@
-//! This the types needed to conform to in order to
-//! have the wrapper execute your server.
-
 use std::{pin::Pin, sync::Arc};
 
-pub enum ContinueRunning {
-    Continue,
-    Exit,
-    ExitWithError(String),
-}
+/// This is the core of the library, in short you need to supply a function that
+/// when called returns async futures that can be polled.
+pub type ServerGenerator = Arc<dyn Fn() -> ServerGeneratorResult + Send + Sync>;
 
+/// This is the return type for the async tasks, the future's return type is to indicate
+/// to the wrapper if it should keep being executed.
 pub type ServerGeneratorResult = Pin<Box<dyn Future<Output = ContinueRunning> + Send>>;
 
-pub type ServerGenerator = Arc<dyn Fn() -> ServerGeneratorResult + Send + Sync>;
+/// The various options on if it should continue to execute the server again.
+pub enum ContinueRunning {
+    /// The server generator should be called again
+    Continue,
+    /// There is no point in trying to execute again
+    Exit,
+    /// There is no point in trying to execute again and we have a reason
+    ExitWithError(String),
+}
