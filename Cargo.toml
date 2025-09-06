@@ -11,6 +11,7 @@ categories = ["gui"]
 [dev-dependencies]
 anyhow = "1.0"
 tokio = { version = "1", features = ["rt", "sync"] }
+axum = { version = "0.8.1" }
 
 [dependencies]
 image = "0.25.5"
