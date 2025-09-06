@@ -2665,7 +2665,7 @@ dependencies = [
 
 [[package]]
 name = "tray-wrapper"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "glib 0.21.1",
