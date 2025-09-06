@@ -41,7 +41,7 @@ impl MenuState {
                 self.status_item.set_text("In startup");
             }
             ServerStatus::Running => {
-                self.tray_icon.set_title(None as Option<String>);
+                self.tray_icon.set_title(Some(""));
                 self.status_item.set_text("Running");
             }
             ServerStatus::Stopped(s) => {
