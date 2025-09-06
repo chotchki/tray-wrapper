@@ -22,7 +22,7 @@ impl MenuState {
         let tray_menu = Menu::new();
         tray_menu.append(&status_item)?;
         if let Some(v) = version {
-            tray_menu.append(&MenuItem::new(v, false, None));
+            tray_menu.append(&MenuItem::new(v, false, None))?;
         }
         tray_menu.append(&quit_item)?;
 
