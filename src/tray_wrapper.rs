@@ -15,6 +15,7 @@ use winit::{application::ApplicationHandler, event_loop::EventLoopProxy};
 /// This is the main entry point / handle for the wrapper
 pub struct TrayWrapper {
     icon: Icon,
+    version: Option<String>,
     menu_state: Option<MenuState>,
     runtime: Option<Runtime>,
     event_loop_proxy: EventLoopProxy<UserEvent>,
@@ -26,6 +27,7 @@ impl TrayWrapper {
     /// can ignore image parsing errors.
     pub fn new(
         icon_data: &[u8],
+        version: Option<String>,
         event_loop_proxy: EventLoopProxy<UserEvent>,
         server_gen: ServerGenerator,
     ) -> Result<Self, TrayWrapperError> {
@@ -38,6 +40,7 @@ impl TrayWrapper {
 
         Ok(TrayWrapper {
             icon,
+            version,
             menu_state: None,
             runtime: Some(Runtime::new()?),
 
@@ -67,7 +70,7 @@ impl ApplicationHandler<UserEvent> for TrayWrapper {
         // We create the icon once the event loop is actually running
         // to prevent issues like https://github.com/tauri-apps/tray-icon/issues/90
         if winit::event::StartCause::Init == cause {
-            let Ok(mut ms) = MenuState::new(self.icon.clone()) else {
+            let Ok(mut ms) = MenuState::new(self.icon.clone(), self.version.clone()) else {
                 return _event_loop.exit();
             };
             ms.update_tray_icon(ServerStatus::StartUp); //The error type doesn't matter in this case

@@ -14,13 +14,16 @@ pub struct MenuState {
 }
 
 impl MenuState {
-    pub fn new(icon: Icon) -> Result<Self, MenuStateError> {
+    pub fn new(icon: Icon, version: Option<String>) -> Result<Self, MenuStateError> {
         let tray_icon = TrayIconBuilder::new().with_icon(icon).build()?;
 
         let status_item = MenuItem::new("Starting Up", false, None);
         let quit_item = MenuItem::new("Quit", true, None);
         let tray_menu = Menu::new();
         tray_menu.append(&status_item)?;
+        if let Some(v) = version {
+            tray_menu.append(&MenuItem::new(v, false, None));
+        }
         tray_menu.append(&quit_item)?;
 
         Ok(Self {

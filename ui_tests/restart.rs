@@ -21,6 +21,7 @@ fn main() -> anyhow::Result<()> {
 
     create_tray_wrapper(
         include_bytes!("../examples/example_icon.png"),
+        Some("0.0.1".to_string()),
         Arc::new(&sg),
     )?;
 

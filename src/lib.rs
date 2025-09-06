@@ -19,10 +19,11 @@ use thiserror::Error;
 
 pub fn create_tray_wrapper(
     icon_data: &[u8],
+    version: Option<String>,
     server_gen: ServerGenerator,
 ) -> Result<(), CreateTrayWrapperError> {
     let event_loop = setup_event_loop();
-    let mut tw = TrayWrapper::new(icon_data, event_loop.create_proxy(), server_gen)?;
+    let mut tw = TrayWrapper::new(icon_data, version, event_loop.create_proxy(), server_gen)?;
 
     //Fix to ensure GTK has been started on linux (see tray-icon examples)
     #[cfg(target_os = "linux")]

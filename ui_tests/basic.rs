@@ -9,6 +9,7 @@ fn main() -> anyhow::Result<()> {
 
     create_tray_wrapper(
         include_bytes!("../examples/example_icon.png"),
+        None,
         Arc::new(&sg),
     )?;
 
