@@ -1,5 +1,7 @@
 name: Code Coverage
 on: push
+permissions:
+  contents: read
 
 env:
   CARGO_TERM_COLOR: always
