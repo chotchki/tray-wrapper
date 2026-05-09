@@ -58,13 +58,7 @@ impl MenuState {
     }
 
     pub fn quit_matches(&self, event: &UserEvent) -> bool {
-        if let UserEvent::Menu(me) = event
-            && me.id == self.quit_item.id()
-        {
-            true
-        } else {
-            false
-        }
+        matches!(event, UserEvent::Menu(me) if me.id == self.quit_item.id())
     }
 }
 

@@ -73,7 +73,7 @@ impl ApplicationHandler<UserEvent> for TrayWrapper {
             let Ok(mut ms) = MenuState::new(self.icon.clone(), self.version.clone()) else {
                 return _event_loop.exit();
             };
-            ms.update_tray_icon(ServerStatus::StartUp); //The error type doesn't matter in this case
+            ms.update_tray_icon(ServerStatus::StartUp);
             self.menu_state = Some(ms);
 
             //Now its time to really start the server
@@ -90,26 +90,32 @@ impl ApplicationHandler<UserEvent> for TrayWrapper {
                 let sg_fn = sg;
                 loop {
                     let next_run = sg_fn();
-                    elp.send_event(UserEvent::ServerStatus(ServerStatus::Running))
-                        .expect("Event Loop Closed!");
+                    if elp
+                        .send_event(UserEvent::ServerStatus(ServerStatus::Running))
+                        .is_err()
+                    {
+                        break;
+                    }
                     match next_run.await {
                         ContinueRunning::Continue => {
-                            elp.send_event(UserEvent::ServerStatus(ServerStatus::Stopped(
-                                "Server Exited, will start again".to_string(),
-                            )))
-                            .expect("Event Loop Closed!");
+                            if elp
+                                .send_event(UserEvent::ServerStatus(ServerStatus::Stopped(
+                                    "Server Exited, will start again".to_string(),
+                                )))
+                                .is_err()
+                            {
+                                break;
+                            }
                             continue;
                         }
                         ContinueRunning::Exit => {
-                            elp.send_event(UserEvent::ServerExit)
-                                .expect("Event Loop Closed!");
+                            let _ = elp.send_event(UserEvent::ServerExit);
                             break;
                         }
                         ContinueRunning::ExitWithError(e) => {
-                            elp.send_event(UserEvent::ServerStatus(ServerStatus::Error(
+                            let _ = elp.send_event(UserEvent::ServerStatus(ServerStatus::Error(
                                 e.to_string(),
-                            )))
-                            .expect("Event Loop Closed!");
+                            )));
                             break;
                         }
                     }
@@ -160,5 +166,5 @@ pub enum TrayWrapperError {
     #[error("Failure to pre-create menu")]
     MenuError(#[from] tray_icon::menu::Error),
     #[error(transparent)]
-    RunTime(#[from] std::io::Error),
+    TokioRuntimeInit(#[from] std::io::Error),
 }

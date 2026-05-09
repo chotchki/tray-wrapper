@@ -31,8 +31,12 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Check Format
         run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
       - name: Build the library
         run: cargo build --locked
+      - name: Build examples
+        run: cargo build --examples --locked
       - name: Run headless test
         uses: GabrielBB/xvfb-action@v1
         with:
