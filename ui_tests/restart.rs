@@ -11,9 +11,9 @@ fn main() -> anyhow::Result<()> {
             *runs += 1;
 
             if *runs == 1 {
-                ContinueRunning::Exit
-            } else {
                 ContinueRunning::Continue
+            } else {
+                ContinueRunning::Exit
             }
         };
         Box::pin(task)
@@ -26,7 +26,7 @@ fn main() -> anyhow::Result<()> {
     )?;
 
     let runs = RUNS_COUNT.lock().unwrap();
-    assert_eq!(*runs, 1);
+    assert_eq!(*runs, 2);
 
     Ok(())
 }

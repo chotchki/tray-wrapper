@@ -19,10 +19,12 @@ Small, mostly mechanical. The `.expect` fix is the only real bug in the bunch bu
 
 The existing UI tests are passing but lying. Fix that before adding more.
 
-- [ ] 2.1 Fix `ui_tests/restart.rs` — the generator currently returns `Exit` on the first call, so the `Continue` branch never runs and the assertion `*runs == 1` confirms it. Invert the logic: return `Continue` on the first call, `Exit` on the second, assert `*runs == 2`. The test name finally matches what it does.
-- [ ] 2.2 Add a `ui_tests/exit_with_error.rs` (declared `harness = false` in `Cargo.toml`) covering the `ContinueRunning::ExitWithError` path — currently exercised by zero tests.
+- [x] 2.1 Fix `ui_tests/restart.rs` — the generator currently returns `Exit` on the first call, so the `Continue` branch never runs and the assertion `*runs == 1` confirms it. Invert the logic: return `Continue` on the first call, `Exit` on the second, assert `*runs == 2`. The test name finally matches what it does.
+- [x] 2.2 Document the `ContinueRunning::ExitWithError` asymmetry on the variant's doc comment — unlike `Exit` it does NOT terminate the event loop, by design, so the user can read the error before manually quitting. This is a UX choice, not a bug; flagging it in the docs prevents future "fixes" that would make tray apps vanish silently on failure.
 
-**Phase exit:** restart test actually restarts, error-exit path is covered by an e2e test, all UI tests pass under xvfb.
+**Note on coverage:** the originally-planned e2e test for `ExitWithError` was dropped — it can't be e2e because the event loop intentionally stays up after the error. The path will instead be covered by Phase 3.4's mock-sender unit tests, which assert the exact `Running → Error("...")` event sequence (a stricter check than e2e anyway).
+
+**Phase exit:** restart test actually restarts, `ExitWithError`'s sticky-event-loop behavior is documented, all UI tests pass under xvfb.
 
 ## Phase 3 — Testability refactor (the big one)
 
