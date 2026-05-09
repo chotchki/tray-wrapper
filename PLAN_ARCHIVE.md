@@ -32,6 +32,14 @@ Pulled pure logic out from under the winit event loop. Test count went from 0 un
 - [x] 3.4 Four unit tests for `run_server_loop` with a `Vec`-backed mock sender pinning the exact event sequence on every termination path: immediate `Exit`, immediate `ExitWithError`, `Continue → Exit`, `Continue → ExitWithError`.
 - [x] 3.5 No public-surface shift — trait + helper are `pub(crate)`, `status_display` is private, `ServerStatus` lives in a private module. No doc updates needed.
 
+## Phase 5 — Coverage report visibility — _shipped in `08f0886`_
+
+Coverage workflow + badge already existed; this phase made the existing data more useful as a code-review signal.
+
+- [x] 5.1 Added a `comment:` block to `.codecov.yml` (layout: `reach, diff, flags, files`, `require_changes: false`) so each PR gets an automatic Codecov comment with per-file coverage diff.
+
+**Verification (observational, post-merge):** the next codecov run on main should reflect the Phase 3 unit tests (badge percentage moves up); the next PR opened against main should show an auto-generated Codecov comment.
+
 ## Phase 4 — Miri — _no-go_
 
 Decided not to add miri. Miri can't execute the FFI calls that dominate this crate's runtime (winit / tray-icon / gtk / objc2-core-foundation), and the crate has zero `unsafe` of its own — so miri's scope would be limited to the pure extracted modules from Phase 3, which already have full unit-test coverage. The dependencies' `unsafe` is not something miri can verify from a downstream crate.
