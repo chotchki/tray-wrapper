@@ -35,24 +35,9 @@ impl MenuState {
     }
 
     pub fn update_tray_icon(&mut self, status: ServerStatus) {
-        match status {
-            ServerStatus::StartUp => {
-                self.tray_icon.set_title(Some("?"));
-                self.status_item.set_text("In startup");
-            }
-            ServerStatus::Running => {
-                self.tray_icon.set_title(Some(""));
-                self.status_item.set_text("Running");
-            }
-            ServerStatus::Stopped(s) => {
-                self.tray_icon.set_title(Some("X"));
-                self.status_item.set_text(s);
-            }
-            ServerStatus::Error(e) => {
-                self.tray_icon.set_title(Some("E"));
-                self.status_item.set_text(e);
-            }
-        }
+        let (title, text) = status_display(&status);
+        self.tray_icon.set_title(Some(title));
+        self.status_item.set_text(text);
         self.tray_icon
             .set_menu(Some(Box::new(self.tray_menu.clone())));
     }
@@ -62,10 +47,46 @@ impl MenuState {
     }
 }
 
+fn status_display(status: &ServerStatus) -> (&'static str, &str) {
+    match status {
+        ServerStatus::StartUp => ("?", "In startup"),
+        ServerStatus::Running => ("", "Running"),
+        ServerStatus::Stopped(s) => ("X", s),
+        ServerStatus::Error(e) => ("E", e),
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum MenuStateError {
     #[error(transparent)]
     MenuError(#[from] tray_icon::menu::Error),
     #[error(transparent)]
     TrayError(#[from] tray_icon::Error),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn startup_display() {
+        assert_eq!(status_display(&ServerStatus::StartUp), ("?", "In startup"));
+    }
+
+    #[test]
+    fn running_display() {
+        assert_eq!(status_display(&ServerStatus::Running), ("", "Running"));
+    }
+
+    #[test]
+    fn stopped_display_passes_through_message() {
+        let status = ServerStatus::Stopped("custom stop message".to_string());
+        assert_eq!(status_display(&status), ("X", "custom stop message"));
+    }
+
+    #[test]
+    fn error_display_passes_through_message() {
+        let status = ServerStatus::Error("something failed".to_string());
+        assert_eq!(status_display(&status), ("E", "something failed"));
+    }
 }

@@ -1,8 +1,6 @@
 use crate::{
-    event_loop::UserEvent,
-    menu_state::MenuState,
-    server_generator::{ContinueRunning, ServerGenerator},
-    server_status::ServerStatus,
+    event_loop::UserEvent, menu_state::MenuState, server_generator::ServerGenerator,
+    server_loop::run_server_loop, server_status::ServerStatus,
 };
 use image::ImageError;
 use std::time::Duration;
@@ -86,41 +84,7 @@ impl ApplicationHandler<UserEvent> for TrayWrapper {
                 .take()
                 .expect("Unable to take generator function");
             let elp = self.event_loop_proxy.clone();
-            rt.spawn(async move {
-                let sg_fn = sg;
-                loop {
-                    let next_run = sg_fn();
-                    if elp
-                        .send_event(UserEvent::ServerStatus(ServerStatus::Running))
-                        .is_err()
-                    {
-                        break;
-                    }
-                    match next_run.await {
-                        ContinueRunning::Continue => {
-                            if elp
-                                .send_event(UserEvent::ServerStatus(ServerStatus::Stopped(
-                                    "Server Exited, will start again".to_string(),
-                                )))
-                                .is_err()
-                            {
-                                break;
-                            }
-                            continue;
-                        }
-                        ContinueRunning::Exit => {
-                            let _ = elp.send_event(UserEvent::ServerExit);
-                            break;
-                        }
-                        ContinueRunning::ExitWithError(e) => {
-                            let _ = elp.send_event(UserEvent::ServerStatus(ServerStatus::Error(
-                                e.to_string(),
-                            )));
-                            break;
-                        }
-                    }
-                }
-            });
+            rt.spawn(run_server_loop(sg, elp));
         }
 
         // We have to request a redraw here to have the icon actually show up.

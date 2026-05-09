@@ -30,11 +30,11 @@ The existing UI tests are passing but lying. Fix that before adding more.
 
 Goal: pull pure logic out from under the winit event loop so it's reachable from ordinary `#[test]` functions. This is what actually moves coverage.
 
-- [ ] 3.1 Extract a pure `fn status_display(status: &ServerStatus) -> (Option<&str>, &str)` (or similar — name the tuple if it improves clarity) returning the tray title overlay and the menu-item text. `MenuState::update_tray_icon` becomes a thin wrapper that calls this and applies the values.
-- [ ] 3.2 Unit tests for `status_display` covering all four `ServerStatus` variants including the `Stopped(s)` and `Error(e)` payload pass-through.
-- [ ] 3.3 Extract the spawned task's restart loop (`src/tray_wrapper.rs:89-117`) into a free function generic over a sender trait, e.g. `async fn run_server_loop<S: StatusSender>(gen: ServerGenerator, sender: S)`. `EventLoopProxy<UserEvent>` gets a thin `impl StatusSender` wrapper.
-- [ ] 3.4 Unit tests for `run_server_loop` with a `Vec`-backed mock sender, covering: `Continue` then `Exit`, `Continue` then `ExitWithError`, immediate `Exit`, immediate `ExitWithError`. Assert the exact event sequence.
-- [ ] 3.5 Update module docs / `lib.rs` doc comment if the public surface shifted (the `StatusSender` trait may need to stay private).
+- [x] 3.1 Extract a pure `fn status_display(status: &ServerStatus) -> (Option<&str>, &str)` (or similar — name the tuple if it improves clarity) returning the tray title overlay and the menu-item text. `MenuState::update_tray_icon` becomes a thin wrapper that calls this and applies the values.
+- [x] 3.2 Unit tests for `status_display` covering all four `ServerStatus` variants including the `Stopped(s)` and `Error(e)` payload pass-through.
+- [x] 3.3 Extract the spawned task's restart loop (`src/tray_wrapper.rs:89-117`) into a free function generic over a sender trait, e.g. `async fn run_server_loop<S: StatusSender>(gen: ServerGenerator, sender: S)`. `EventLoopProxy<UserEvent>` gets a thin `impl StatusSender` wrapper.
+- [x] 3.4 Unit tests for `run_server_loop` with a `Vec`-backed mock sender, covering: `Continue` then `Exit`, `Continue` then `ExitWithError`, immediate `Exit`, immediate `ExitWithError`. Assert the exact event sequence.
+- [x] 3.5 Update module docs / `lib.rs` doc comment if the public surface shifted (the `StatusSender` trait may need to stay private). _No-op: trait + helper are `pub(crate)`, `status_display` is private, `ServerStatus` lives in a private module. No public surface shift._
 
 **Phase exit:** all boxes ticked, line coverage on `src/menu_state.rs` and `src/tray_wrapper.rs` measurably up (codecov delta visible on the PR), e2e UI tests still green.
 
@@ -43,6 +43,7 @@ Goal: pull pure logic out from under the winit event loop so it's reachable from
 Only worth doing if Phase 3 lands and you want belt-and-suspenders on the pure extracted code. Caveats up top of the plan apply: miri can't touch the FFI-heavy parts, and there's no `unsafe` in our own code for it to scrutinize.
 
 - [ ] 4.1 Decide go/no-go after Phase 3. Default: no-go.
+  - I agree on the no go
 - [ ] 4.2 If go: add a `miri` job to CI running `cargo +nightly miri test` filtered to the pure modules only (the FFI-touching tests will need `#[cfg_attr(miri, ignore)]`).
 
 ---

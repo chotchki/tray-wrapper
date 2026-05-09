@@ -1,5 +1,5 @@
 /// The state of the running server process
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq, Eq)]
 pub enum ServerStatus {
     //This is used when the wrapper starts up
     #[default]

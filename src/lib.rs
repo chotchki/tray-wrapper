@@ -8,6 +8,7 @@
 mod event_loop;
 mod menu_state;
 mod server_generator;
+mod server_loop;
 mod server_status;
 mod tray_wrapper;
 use event_loop::setup_event_loop;
